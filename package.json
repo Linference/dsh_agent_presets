@@ -1,0 +1,12 @@
+{
+  "name": "dsh-agent-presets",
+  "private": true,
+  "description": "Role-based agent presets for DeepSeek Harness",
+  "type": "module",
+  "scripts": {
+    "test": "node .github/scripts/validate.mjs"
+  },
+  "devDependencies": {
+    "js-yaml": "^4.1.0"
+  }
+}

@@ -1,0 +1,9 @@
+# Normalize line endings: text files to LF in the repo, CRLF on checkout
+# is left to the user's own git config. YAML/Markdown stay LF in-repo so
+# diffs never show whole-file churn.
+* text=auto
+*.yml  text eol=lf
+*.yaml text eol=lf
+*.md   text eol=lf
+*.mjs  text eol=lf
+*.json text eol=lf

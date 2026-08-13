@@ -1,6 +1,10 @@
 # DSH Agent Presets
 
-一套为 [DeepSeek Harness](https://github.com/deepseek-ai)（DSH，`@deepseek-ai/dsh`）编写的**角色化 Agent 预设**集合：8 个开箱即用的专家角色，把默认的通用编码 Agent 替换为专注特定工作方式的专业角色。
+[![validate](https://github.com/Linference/dsh_agent_presets/actions/workflows/validate.yml/badge.svg)](https://github.com/Linference/dsh_agent_presets/actions/workflows/validate.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![DSH](https://img.shields.io/badge/DSH-0.1.0--rc.6-536dfe.svg)](https://www.npmjs.com/package/@deepseek-ai/dsh)
+
+一套为 DeepSeek Harness（DSH，`@deepseek-ai/dsh`）编写的**角色化 Agent 预设**集合：8 个开箱即用的专家角色，把默认的通用编码 Agent 替换为专注特定工作方式的专业角色。
 
 > 所有预设以官方 `standard` 预设为基线（完整保留工具与能力），仅替换角色人设（persona），并按中文工作习惯撰写。
 
@@ -55,7 +59,7 @@ code-review/
 └── agent.cordis.yml    # Cordis 组合文件：persona + 工具/能力配置
 ```
 
-- `preset.yml` 只携带选择器展示用的名称与描述，不含配置逻辑。
+- `preset.yml` 只携带选择器展示用的名称与描述，不含配置逻辑；可选 `order`（数字）控制选择器中的排序，本仓库按常用程度排为 1-8。
 - `agent.cordis.yml` 是完整的 Agent 组合：角色人设、Shell、文件工具、Skills、计划模式、上下文压缩、子代理与工作流等。它以官方 `standard` 预设为基线，8 个预设之间只有 persona 段不同。
 
 ## 自定义
@@ -74,6 +78,17 @@ code-review/
   diff code-review/agent.cordis.yml \
     node_modules/@deepseek-ai/dsh/config/agent-presets/standard/agent.cordis.yml
   ```
+
+## 验证与 CI
+
+本仓库带一个校验脚本，镜像 DSH 挂载时的规则（目录名、组合文件结构、`!!js` YAML 方言、元数据形状、行 id 唯一性、persona 存在性）：
+
+```bash
+npm install
+npm test
+```
+
+每次 push / PR 由 GitHub Actions（`.github/workflows/validate.yml`）自动跑同样的校验。
 
 ## 注意事项
 
