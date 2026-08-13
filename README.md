@@ -4,7 +4,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![DSH](https://img.shields.io/badge/DSH-0.1.0--rc.6-536dfe.svg)](https://www.npmjs.com/package/@deepseek-ai/dsh)
 
-一套为 DeepSeek Harness（DSH，`@deepseek-ai/dsh`）编写的**角色化 Agent 预设**集合：8 个开箱即用的专家角色，把默认的通用编码 Agent 替换为专注特定工作方式的专业角色。
+一套为 DeepSeek Harness（DSH，`@deepseek-ai/dsh`）编写的**角色化 Agent 预设**集合：16 个开箱即用的专家角色，把默认的通用编码 Agent 替换为专注特定工作方式的专业角色。
 
 > 所有预设以官方 `standard` 预设为基线（完整保留工具与能力），仅替换角色人设（persona），并按中文工作习惯撰写。
 
@@ -20,6 +20,14 @@
 | `perf-optimization` | 性能优化 | 先测量后优化：定位真实瓶颈，给出带基准对比的优化方案 |
 | `code-explainer` | 代码解释 | 带你读懂陌生代码库：模块地图、调用链与设计意图讲解，默认只读 |
 | `data-review` | 数据质检 | 数据质量审查：缺失、重复、异常值与标注一致性检查，输出质量报告 |
+| `code-debugger` | 调试排障 | 先复现后定位：日志、堆栈与二分法找出根因，修复前先给验证方案 |
+| `code-refactor` | 安全重构 | 行为不变红线：小步机械重构、每步可测试可回退，禁止顺手改功能 |
+| `test-writer` | 测试编写 | 写出能抓住回归的测试：边界、异常与并发覆盖，报告缺口与不测理由 |
+| `data-analysis` | 数据分析 | 从数据里挖结论：描述统计、分布与关系探索，结论配图表与置信度 |
+| `code-migration` | 迁移升级 | 安全搬家：破坏性变更评估、批次规划与回退预案，绝不一次性大改 |
+| `api-designer` | 接口设计 | 稳定可演进的接口契约：schema、错误码、鉴权、限流与版本策略 |
+| `documentation-writer` | 文档撰写 | 分读者分层写作：概览、快速开始、指南、参考与排障，示例真实可运行 |
+| `devops-engineer` | 部署运维 | 可重复、可观测、可回滚的交付：CI/CD、容器、密钥与发布策略 |
 
 ## 快速开始
 
@@ -59,8 +67,8 @@ code-review/
 └── agent.cordis.yml    # Cordis 组合文件：persona + 工具/能力配置
 ```
 
-- `preset.yml` 只携带选择器展示用的名称与描述，不含配置逻辑；可选 `order`（数字）控制选择器中的排序，本仓库按常用程度排为 1-8。
-- `agent.cordis.yml` 是完整的 Agent 组合：角色人设、Shell、文件工具、Skills、计划模式、上下文压缩、子代理与工作流等。它以官方 `standard` 预设为基线，8 个预设之间只有 persona 段不同。
+- `preset.yml` 只携带选择器展示用的名称与描述，不含配置逻辑；可选 `order`（数字）控制选择器中的排序，本仓库按常用程度排为 1-16。
+- `agent.cordis.yml` 是完整的 Agent 组合：角色人设、Shell、文件工具、Skills、计划模式、上下文压缩、子代理与工作流等。它以官方 `standard` 预设为基线，16 个预设之间只有 persona 段不同。
 
 ## 自定义
 

@@ -1,0 +1,3 @@
+name: 部署运维
+description: 可重复、可观测、可回滚的交付：CI/CD、容器、密钥与发布策略。
+order: 16
