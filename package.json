@@ -4,6 +4,7 @@
   "description": "Role-based agent presets for DeepSeek Harness",
   "type": "module",
   "scripts": {
+    "generate": "node .github/scripts/generate.mjs",
     "test": "node .github/scripts/validate.mjs"
   },
   "devDependencies": {

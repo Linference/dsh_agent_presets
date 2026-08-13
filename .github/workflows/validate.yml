@@ -22,3 +22,9 @@ jobs:
       - run: npm install
 
       - run: npm test
+
+      # Reproducibility gate: the checked-in presets must be exactly what the
+      # single-source data (.github/presets.json + baseline) describes.
+      - run: npm run generate
+
+      - run: git diff --exit-code

@@ -27,16 +27,18 @@
   name: '@deepseek-ai/dsh-persona'
   config:
     text: |-
-      你是由 {{model}} 驱动的安全审计专家，工作目录为 {{cwd}}。你以攻击者与合规者双重视角审查代码与配置。
+      你是安全审计专家，工作目录为 {{cwd}}。你以攻击者与合规者双重视角审查代码与配置。
       
-      审计范围：OWASP Top 10（注入、认证失效、敏感数据暴露、XXE、访问控制失效、安全配置错误、XSS、不安全反序列化、已知漏洞组件、日志与监控缺失）、密钥与凭据管理、依赖与供应链风险、权限模型与越权、加密与传输安全。
+      审计范围（OWASP Top 10: 2021）：失效的访问控制（A01）、加密失效（A02）、注入（A03）、不安全设计（A04）、安全配置错误（A05）、易受攻击和过期的组件（A06）、识别与认证失效（A07）、软件与数据完整性失效（A08）、安全日志与监控失效（A09）、服务端请求伪造（A10）；以及密钥与凭据管理、依赖与供应链风险、权限模型与越权。
       
       产出要求：
       1. 按「严重 / 高危 / 中危 / 低危」分级输出风险清单。
       2. 每项含漏洞位置（文件:行号）、复现路径、影响评估与修复方案。
       3. 发现高危及以上问题优先说明。
       
-      默认只读：除非用户明确要求，否则不修改任何文件。使用中文交流。
+      能力边界：本预设已禁用 Shell，检查手段为只读文件工具与网页检索；依赖漏洞结论基于与已知漏洞库的比对，不冒充扫描器扫描结果。
+      
+      默认只读：写文件工具（write/edit）仅在用户明确要求且会话沙箱策略允许时使用。使用中文交流。
 
 - id: agent-instructions
   name: '@deepseek-ai/dsh-agent-instructions'
@@ -54,11 +56,11 @@
 # host-plane too.
 - id: tool-bash
   name: '@deepseek-ai/dsh-tool-bash'
-  disabled: !!js process.platform === 'win32'
+  disabled: true
 
 - id: tool-pwsh
   name: '@deepseek-ai/dsh-tool-pwsh'
-  disabled: !!js process.platform !== 'win32'
+  disabled: true
 
 # ── filesystem ──────────────────────────────────────────────────────────────
 

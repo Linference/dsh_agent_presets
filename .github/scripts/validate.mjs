@@ -13,11 +13,15 @@
  *     (non-empty strings) and `order` (finite number) only.
  *
  * On top of the official rules, this collection additionally requires:
- *   - a preset.yml with a non-empty name and description per preset;
- *   - unique row ids across each composition;
- *   - a persona row (`@deepseek-ai/dsh-persona`) with non-empty text.
+ *   - `.github/presets.json` to be well-formed (unique ids/orders, non-empty
+ *     text fields, readOnly flags) and to cover exactly the preset dirs;
+ *   - a persona row (`@deepseek-ai/dsh-persona`) with non-empty text;
+ *   - readOnly presets to have both shell rows hard-disabled (no `!!js`
+ *     platform switch, both `disabled: true`) — the read-only promise is
+ *     enforced at the tool layer, not left to prose.
  */
 import { readFile, readdir, stat } from 'node:fs/promises';
+import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import yaml from 'js-yaml';
 
@@ -25,6 +29,7 @@ const PRESET_ID = /^[a-z0-9][a-z0-9-]*$/;
 const COMPOSITION_FILE = 'agent.cordis.yml';
 const METADATA_FILE = 'preset.yml';
 const PERSONA = '@deepseek-ai/dsh-persona';
+const DATA_FILE = join('.github', 'presets.json');
 
 // The loader's own dialect: `!!js` scalars are expressions, not strings.
 const jsType = new yaml.Type('tag:yaml.org,2002:js', {
@@ -80,10 +85,49 @@ function collectIds(rows, into = []) {
   return into;
 }
 
-async function checkPreset(dir, id) {
+/** Load and validate the single-source data file; undefined when unusable. */
+function loadDataFile() {
+  let data;
+  try {
+    data = JSON.parse(readFileSync(DATA_FILE, 'utf8'));
+  } catch (error) {
+    const full = error instanceof Error ? error.message : String(error);
+    fail(`${DATA_FILE}: cannot parse: ${full.split('\n')[0]}`);
+    return undefined;
+  }
+  if (typeof data !== 'object' || data === null || !Array.isArray(data.presets) || data.presets.length === 0) {
+    fail(`${DATA_FILE}: must be an object with a non-empty presets array`);
+    return undefined;
+  }
+  const ids = [];
+  const orders = [];
+  for (const [i, p] of data.presets.entries()) {
+    const label = `presets[${i}]`;
+    if (typeof p !== 'object' || p === null) {
+      fail(`${DATA_FILE} ${label}: not an object`);
+      continue;
+    }
+    if (!PRESET_ID.test(String(p.id ?? ''))) fail(`${DATA_FILE} ${label}: id "${p.id}" must match ${PRESET_ID}`);
+    if (text(p.name) === undefined) fail(`${DATA_FILE} ${label}: missing name`);
+    if (text(p.description) === undefined) fail(`${DATA_FILE} ${label}: missing description`);
+    if (text(p.persona) === undefined) fail(`${DATA_FILE} ${label}: missing persona`);
+    if (!Number.isFinite(p.order)) fail(`${DATA_FILE} ${label}: order must be a finite number`);
+    if (p.readOnly !== undefined && typeof p.readOnly !== 'boolean') {
+      fail(`${DATA_FILE} ${label}: readOnly must be a boolean when present`);
+    }
+    ids.push(p.id);
+    orders.push(p.order);
+  }
+  const dupIds = ids.filter((v, i) => ids.indexOf(v) !== i);
+  if (dupIds.length > 0) fail(`${DATA_FILE}: duplicate preset id(s) ${[...new Set(dupIds)].join(', ')}`);
+  const dupOrders = orders.filter((v, i) => orders.indexOf(v) !== i);
+  if (dupOrders.length > 0) fail(`${DATA_FILE}: duplicate order value(s) ${[...new Set(dupOrders)].join(', ')}`);
+  return data;
+}
+
+async function checkPreset(dir, id, entry) {
   const compositionPath = join(dir, COMPOSITION_FILE);
 
-  // Composition must exist and load.
   let content;
   try {
     content = await readFile(compositionPath, 'utf8');
@@ -117,6 +161,25 @@ async function checkPreset(dir, id) {
     fail(`${id}: persona row carries no non-empty config.text`);
   }
 
+  // readOnly presets: shells must be hard-disabled at the tool layer.
+  if (entry?.readOnly === true) {
+    for (const shellId of ['tool-bash', 'tool-pwsh']) {
+      const row = rows.find((r) => r.id === shellId);
+      if (row === undefined) {
+        fail(`${id}: readOnly preset must keep the ${shellId} row (hard-disabled)`);
+      } else if (row.disabled !== true) {
+        fail(`${id}: readOnly preset must set ${shellId} disabled: true (found: ${JSON.stringify(row.disabled)})`);
+      }
+    }
+  } else {
+    for (const shellId of ['tool-bash', 'tool-pwsh']) {
+      const row = rows.find((r) => r.id === shellId);
+      if (row?.disabled === true) {
+        fail(`${id}: ${shellId} is hard-disabled but the preset is not readOnly`);
+      }
+    }
+  }
+
   // Display metadata (required by this collection, optional in DSH).
   let meta;
   try {
@@ -142,15 +205,21 @@ async function checkPreset(dir, id) {
   }
 }
 
+const data = loadDataFile();
+const dataIds = new Set((data?.presets ?? []).map((p) => p.id));
+
 const root = process.cwd();
 const entries = await readdir(root);
+const found = new Map();
 let checked = 0;
 for (const entry of entries) {
   if (entry.startsWith('.') || entry === 'node_modules') continue;
   const path = join(root, entry);
   if (!(await stat(path)).isDirectory()) continue;
   if (!PRESET_ID.test(entry)) continue; // Non-preset directories are skipped, same as scanRoot.
-  await checkPreset(path, entry);
+  found.set(entry, path);
+  const meta = (data?.presets ?? []).find((p) => p.id === entry);
+  await checkPreset(path, entry, meta);
   checked += 1;
 }
 
@@ -158,8 +227,17 @@ if (checked === 0) {
   fail('no preset directories found (a preset id must match /^[a-z0-9][a-z0-9-]*$/)');
 }
 
+if (data !== undefined) {
+  for (const id of dataIds) {
+    if (!found.has(id)) fail(`${id}: listed in ${DATA_FILE} but has no directory — run \`npm run generate\``);
+  }
+  for (const id of found.keys()) {
+    if (!dataIds.has(id)) fail(`${id}: has a directory but is not listed in ${DATA_FILE} — run \`npm run generate\``);
+  }
+}
+
 if (problems.length > 0) {
   console.error(`✗ ${problems.length} problem(s) found:\n- ${problems.join('\n- ')}`);
   process.exit(1);
 }
-console.log(`✓ all ${checked} presets pass (structure, YAML dialect, metadata, unique ids, persona)`);
+console.log(`✓ all ${checked} presets pass (structure, YAML dialect, metadata, unique ids, persona, readOnly enforcement)`);

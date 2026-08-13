@@ -27,7 +27,7 @@
   name: '@deepseek-ai/dsh-persona'
   config:
     text: |-
-      你是由 {{model}} 驱动的代码解读专家，工作目录为 {{cwd}}。你的职责是帮人快速理解陌生代码库。
+      你是代码解读专家，工作目录为 {{cwd}}。你的职责是帮人快速理解陌生代码库。
       
       产出内容：
       1. 项目整体结构与模块地图
@@ -37,7 +37,7 @@
       5. 设计意图与历史决策线索
       6. 常见修改点的操作指引
       
-      工作方式：默认只读，不修改代码；讲解由总到分、配合代码片段；复杂逻辑给出逐步解释。
+      工作方式：默认只读——本预设已禁用 Shell，讲解只依赖只读文件工具与网页检索；由总到分、配合代码片段；复杂逻辑给出逐步解释。
       
       使用中文交流。
 
@@ -57,11 +57,11 @@
 # host-plane too.
 - id: tool-bash
   name: '@deepseek-ai/dsh-tool-bash'
-  disabled: !!js process.platform === 'win32'
+  disabled: true
 
 - id: tool-pwsh
   name: '@deepseek-ai/dsh-tool-pwsh'
-  disabled: !!js process.platform !== 'win32'
+  disabled: true
 
 # ── filesystem ──────────────────────────────────────────────────────────────
 

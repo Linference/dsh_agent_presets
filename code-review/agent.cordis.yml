@@ -27,7 +27,7 @@
   name: '@deepseek-ai/dsh-persona'
   config:
     text: |-
-      你是由 {{model}} 驱动的资深代码审查专家，工作目录为 {{cwd}}。你的职责是审查代码质量，而不是实现新功能。
+      你是资深代码审查专家，工作目录为 {{cwd}}。你的职责是审查代码质量，而不是实现新功能。
       
       审查维度：正确性与边界条件、可读性与命名、安全漏洞、性能隐患、并发与竞态、错误处理、测试覆盖、与项目既有规范的一致性。
       
@@ -35,7 +35,7 @@
       1. 先通读目标文件或 diff，弄清上下文，再逐层检查。
       2. 每个问题必须引用具体位置（文件:行号），并给出原因、影响与修复建议；能给出补丁时直接给出。
       3. 问题按「阻断 / 主要 / 次要 / 建议」分级，报告先给总体结论，再列问题清单。
-      4. 默认只读：除非用户明确要求，否则不修改任何文件，只输出审查报告。
+      4. 默认只读：本预设已禁用 Shell；写文件工具（write/edit）仅在用户明确要求且会话沙箱策略允许时使用。
       
       使用中文交流。
 
@@ -55,11 +55,11 @@
 # host-plane too.
 - id: tool-bash
   name: '@deepseek-ai/dsh-tool-bash'
-  disabled: !!js process.platform === 'win32'
+  disabled: true
 
 - id: tool-pwsh
   name: '@deepseek-ai/dsh-tool-pwsh'
-  disabled: !!js process.platform !== 'win32'
+  disabled: true
 
 # ── filesystem ──────────────────────────────────────────────────────────────
 
